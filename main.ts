@@ -39,10 +39,13 @@ export default class RememberViewStatePlugin extends Plugin {
 
 	async onload() {
 		this.registerEvent(this.app.workspace.on('active-leaf-change', this.handleActiveLeafChange));
-		this.app.workspace.onLayoutReady(() => { this.loadSettings(); });
+		this.app.workspace.onLayoutReady(() => {
+			this.loadSettings();
+		});
 	}
 
-	onunload() {}
+	onunload() {
+	}
 
 	async loadSettings() {
 		if (this.initialized) {
@@ -64,8 +67,24 @@ export default class RememberViewStatePlugin extends Plugin {
 		markdownViews.forEach((view, index) => {
 			const markdownView = view.view as MarkdownView;
 			const tabState = this.settings.tabs[index] || {line: 0, ch: 0};
-			console.log('setting cursor for tab', index, view.getDisplayText(), view.id, tabState)
-			markdownView.editor.setCursor(tabState.cursor || {line: 0, ch: 0});
+			let cursor = tabState.cursor;
+			let scroll = tabState.scroll;
+			// @ts-ignore this is not visible, yet the best way to get an id that's
+			// persistent across reloads / restarts
+			let viewId = view.id;
+			console.log('setting cursor for tab', index, view.getDisplayText(), viewId, tabState)
+			markdownView.editor.setCursor(cursor || {line: 0, ch: 0});
+			console.log('>>>> setting scroll for tab', index, view.getDisplayText(), viewId, scroll)
+			// attempting to set the scroll position
+			// NOTE this is not working as expected
+			// The problem is getScrollInfo() returns a different object than the one we saved.
+			// Moreover, it returns a value in pixels and this sets one in lines.
+			// Moreover, none of the APIs are documented.
+			// This centers the scroll to cursor position
+			markdownView.editor.scrollIntoView({
+				from: {line: cursor.line, ch: cursor.ch},
+				to: {line: cursor.line, ch: cursor.ch}
+			}, true)
 		})
 	}
 
@@ -74,10 +93,11 @@ export default class RememberViewStatePlugin extends Plugin {
 	}
 
 	handleActiveLeafChange = async (leaf: WorkspaceLeaf) => {
-		if (!this.initialized) { return }
+		if (!this.initialized) {
+			return
+		}
 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (markdownView) {
-			const cursor = markdownView.editor.getCursor()
 			let markdownViews = this.app.workspace.getLeavesOfType('markdown');
 
 			// clear this.settings.tabs
@@ -89,6 +109,7 @@ export default class RememberViewStatePlugin extends Plugin {
 				const scrollInfo = markdownView.editor.getScrollInfo()
 				this.settings.tabs[index] = {cursor, scroll: scrollInfo}
 			})
+			console.log('Saving tabs', this.settings.tabs)
 
 			await this.saveSettings();
 		}
