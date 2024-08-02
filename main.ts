@@ -32,6 +32,7 @@ interface TabState {
 	}
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default class RememberViewStatePlugin extends Plugin {
 	settings: PluginSettings;
 
