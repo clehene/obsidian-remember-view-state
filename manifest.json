@@ -1,7 +1,7 @@
 {
 	"id": "remember-view-state-plugin",
 	"name": "Remember View State",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "0.15.0",
 	"description": "Remember the view state of your tabs. When you reopen Obsidian, the cursor every editor will be placed at the last position you left it",
 	"author": "Cosmin Lehene",
