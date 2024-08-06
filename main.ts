@@ -81,7 +81,7 @@ export default class RememberViewStatePlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	handleActiveLeafChange = async (leaf: WorkspaceLeaf) => {
+	handleActiveLeafChange = async () => {
 		if (!this.initialized) {
 			return
 		}
