@@ -1,7 +1,7 @@
 {
 	"id": "remember-context",
 	"name": "Remember Context",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"minAppVersion": "0.15.0",
 	"description": "Remember the view state of your tabs. If you quit or crash, when you reopen, all tabs will center around the last position of the cursor.",
 	"author": "Cosmin Lehene",
