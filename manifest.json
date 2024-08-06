@@ -3,7 +3,7 @@
 	"name": "Remember View State",
 	"version": "1.0.6",
 	"minAppVersion": "0.15.0",
-	"description": "Remember the view state of your tabs. When you reopen Obsidian, the cursor every editor will be placed at the last position you left it",
+	"description": "Remember the view state of your tabs. If you quit or crash, when you reopen, all tabs will center around the last position of the cursor.",
 	"author": "Cosmin Lehene",
 	"authorUrl": "https://twitter.com/clehene",
 	"isDesktopOnly": true
