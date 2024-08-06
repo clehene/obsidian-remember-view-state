@@ -1,10 +1,10 @@
 {
 	"id": "remember-view-state",
 	"name": "Remember View State",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"minAppVersion": "0.15.0",
 	"description": "Remember the view state of your tabs. If you quit or crash, when you reopen, all tabs will center around the last position of the cursor.",
 	"author": "Cosmin Lehene",
-	"authorUrl": "https://twitter.com/clehene",
+	"authorUrl": "https://x.com/clehene",
 	"isDesktopOnly": true
 }
