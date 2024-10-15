@@ -27,3 +27,25 @@ files.
 This said, I'm happy to contribute to any of these plugins if they want to add this feature.
 So feel free to copy and paste this in your own plugins and share it back :) 
 
+------
+
+What's affecting scroll
+
+window size 
+vertically change means either top or bottom must be chosen ? who wins
+- this is common when restoring from maximized horizontally to some BS apple leaving room for stage
+horizontally change means left or right - left wins
+
+monitors changing / and restoring on different monitors..
+
+
+whatever
+- cursor wins on editor windows
+- scroll wins on view windows
+
+bottom wins on scroll?
+because at the "end" 
+
+
+font size / zoom level 
+
