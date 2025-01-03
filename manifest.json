@@ -1,7 +1,7 @@
 {
 	"id": "remember-view-state",
 	"name": "Remember View State",
-	"version": "1.0.13-dev",
+	"version": "1.0.14-dev",
 	"minAppVersion": "0.15.0",
 	"description": "Remembers and restores your last cursor/scroll position when reopening.",
 	"author": "Cosmin Lehene",

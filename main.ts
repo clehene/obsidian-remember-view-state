@@ -64,32 +64,33 @@ export default class RememberViewStatePlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		console.log('Settings saved');
 	}
 
 	private async saveTabsStates() {
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!view) {
+			console.log('⏎ not saving because no active view found');
 			return
 		}
 		// Save all and avoide mixing things up when tabs are moved around, closed, etc.
 		this.app.workspace.getLeavesOfType('markdown')
 		.filter(v => (v.view as MarkdownView).editor != null)
 		.forEach((leaf, index) => {
-			const markdownView = leaf.view as MarkdownView;
-			const cursor = markdownView.editor.getCursor()
-			const name = markdownView.getDisplayText();
+			const view = leaf.view as MarkdownView;
+			const cursor = view.editor.getCursor()
+			const name = view.getDisplayText();
 			// @ts-ignore
 			const id = leaf.id;
-			const scrollInfo = markdownView.editor.getScrollInfo()
+			const scrollInfo = view.editor.getScrollInfo()
 			if (cursor.line === 0) {
 				console.log(`Not saving ${name} with 0 cursor`);
 				return;
 			}
 			this.settings.tabs[id] = {id, name, cursor, scroll: scrollInfo, index}
 		})
-		if (isDev) {
-			console.log('Saving tabs', this.settings.tabs)
-		}
+
+		console.log('💾 Saving tabs', this.settings.tabs)
 
 		await this.saveSettings();
 	}
@@ -120,30 +121,31 @@ export default class RememberViewStatePlugin extends Plugin {
 		// })
 		.filter(v => (v.view as MarkdownView).editor != null)
 		.forEach((leaf, index) => {
-			this.restoreLeaf(leaf, index);
+			this.restoreLeaf(leaf);
 		})
 	}
 
-	private restoreLeaf(leaf: WorkspaceLeaf, index: number) {
-		const markdownView = leaf.view as MarkdownView;
+	private async restoreLeaf(leaf: WorkspaceLeaf) {
+		await leaf.loadIfDeferred();
+		const view = leaf.view as MarkdownView;
 		// @ts-ignore this is not visible, yet the best way to get an id that's
 		let leafId = leaf.id;
+
 		this.loadedTabs.set(leafId, true);
-		const tabState = this.settings.tabs[leafId] || {line: 0, ch: 0};
-		let cursor = tabState.cursor || {line: 0, ch: 0};
-		let scrollPosition = tabState.scroll;
-		if (tabState.cursor === undefined) {
-			console.log("WTF empty cursor after setting tabstate " + tabState.cursor);
+		const cursor = this.settings.tabs[leafId]?.cursor ?? {line: 0, ch: 0};
+		let viewCursor = view.editor.getCursor();
+		if (viewCursor.line !== 0 || cursor.line === viewCursor.line) {
+			console.log(`⏎ Ignoring ${leafId} ${view.getDisplayText()} with unchanged or 0 cursor (${viewCursor.line}) `);
+			return;
 		}
-		console.log('setting cursor for tab', index, leaf.getDisplayText(), leafId, tabState.cursor.line)
-		markdownView.editor.setCursor(cursor);
+		view.editor.setCursor(cursor);
 		// attempting to set the scroll position
 		// NOTE this is not working as expected
 		// The problem is getScrollInfo() returns a different object than the one we saved.
 		// Moreover, it returns a value in pixels and this sets one in lines.
 		// Moreover, none of the APIs are documented.
 		// This centers the scroll to cursor position
-		markdownView.editor.scrollIntoView({
+		view.editor.scrollIntoView({
 			from: {line: cursor.line, ch: cursor.ch},
 			to: {line: cursor.line, ch: cursor.ch}
 		}, true)
@@ -153,30 +155,35 @@ export default class RememberViewStatePlugin extends Plugin {
 	onLeafChange = async (leaf: WorkspaceLeaf) => {
 		console.log('⚡️leaf change', leaf);
 		if (!this.initialized) {
+			console.log('⏎ leaf change - early EXIT because not initialized', leaf);
 			return
 		}
 		// @ts-ignore
 		let leafId = leaf.id;
 		let isLoaded = this.loadedTabs.has(leafId);
 		if (isLoaded) {
-			console.log(`leafId ${leafId} already loaded returning`);
-
+			console.log(`DISABLED RETURN ⏎ leafId ${leafId} already loaded returning`);
 			// 👇👇👇👇👇👇👇👇👇👇👇👇👇
 			// doulbe trigger event on first editor 
 			// return;
 		}
 		let tabStates = Object.values(this.settings.tabs).filter(v => v.id === leafId);
 		let hasState = tabStates.length > 0;
+
 		if (!hasState) {
-			console.log(`leaf ${leafId} no state found`);
-			return
+			// 🚨🚨🚨🚨🚨🚨🚨
+			// I suspect we ended up breaking this after we started using it for both read and write
+			// triggering an early exit
+			console.log(`leaf ${leafId} no state found to restore`);
+		} else {
+			// delete - think it's handled in restoreLEaf
+			// if (tabStates[0].cursor.line === 0) {
+			// 	console.log(`leaf ${leafId} ignoring empty state`);
+			// }
+			this.loadedTabs.set(leafId, true)
+			this.restoreLeaf(leaf)
+			console.log(`leaf ${leafId} restored `);
 		}
-		if (tabStates[0].cursor.line === 0) {
-			console.log(`leaf ${leafId} ignoring empty state`);
-		}
-		this.loadedTabs.set(leafId, true)
-		this.restoreLeaf(leaf, 0)
-		console.log(`leaf ${leafId} restored `);
 		await this.saveTabsStates();
 
 	}
